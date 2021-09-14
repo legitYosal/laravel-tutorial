@@ -21,6 +21,9 @@ use App\Http\Controllers\Api;
 // });
 
 Route::apiResource('category', Api\CategoryController::class)->middleware('auth:api');
+Route::apiResource('post', Api\PostController::class)->middleware('auth:api');
 
 Route::post('auth/register', [Api\Authentication::class, 'register']);
 Route::post('auth/token/obtain', [Api\Authentication::class, 'login']);
+
+Route::post('test', [Api\TestUpload::class, 'upload']);

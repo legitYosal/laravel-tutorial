@@ -16,13 +16,13 @@ class Authentication extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => ['required', 'email'],
+            'mobile' => ['required', 'max:11', 'min:11', 'regex:/(09)[0-9]{9}/'],
             'password' => ['required', 'min:3'],
         ]);
         $validator->validate();
         $data = $validator->validated();
         $auth = $this->get_auth();
-        $token = $auth->attempt(['email' => $data['email'], 'password' => $data['password']]);
+        $token = $auth->attempt(['mobile' => $data['mobile'], 'password' => $data['password']]);
         if ($token) {
             return response()->json([
                 'message'=> 'Successfull login',
@@ -32,7 +32,7 @@ class Authentication extends Controller
             ]);
         } else {
             return response()->json([
-                'message'=> 'Email or password was wrong',
+                'message'=> 'Mobile or password was wrong',
             ], 403);
         }
     }
@@ -41,7 +41,7 @@ class Authentication extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => ['required'],
-            'email' => ['required', 'email', 'unique:users'],
+            'mobile' => ['required', 'max:11', 'min:11', 'regex:/(09)[0-9]{9}/', 'unique:users'],
             'password' => ['required', 'min:3'],
         ]);
         $validator->validate();
@@ -49,7 +49,7 @@ class Authentication extends Controller
 
         $user = User::create([
             'name'=> $data['name'],
-            'email'=> $data['email'],
+            'mobile'=> $data['mobile'],
             'password'=> Hash::make($data['password']),
         ]);
 

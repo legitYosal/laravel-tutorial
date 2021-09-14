@@ -21,7 +21,8 @@ class User extends Authenticatable implements JWTSubject
      */
     protected $fillable = [
         'name',
-        'email',
+        // 'email',
+        'mobile',
         'password',
     ];
 
@@ -41,7 +42,8 @@ class User extends Authenticatable implements JWTSubject
      * @var array
      */
     protected $casts = [
-        'email_verified_at' => 'datetime',
+        // 'email_verified_at' => 'datetime',
+        'mobile_verified_at' => 'datetime',
     ];
 
     /**
@@ -62,8 +64,21 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return [
-            'email' => $this->email,
+            'mobile' => $this->mobile,
             'name' => $this->name,
         ];
+    }
+
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+    public function likes()
+    {
+        return $this->hasMany(Like::class);
     }
 }
