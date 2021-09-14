@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\Api\CategoryController;
+use App\Http\Controllers\Api;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,8 +16,11 @@ use App\Http\Controllers\Api\CategoryController;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
-});
+// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+//     return $request->user();
+// });
 
-Route::apiResource('category', CategoryController::class);
+Route::apiResource('category', Api\CategoryController::class)->middleware('auth:api');
+
+Route::post('auth/register', [Api\Authentication::class, 'register']);
+Route::post('auth/token/obtain', [Api\Authentication::class, 'login']);
