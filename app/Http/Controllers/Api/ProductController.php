@@ -3,15 +3,15 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
-use App\Models\Post;
-use App\Models\PostPicture;
-use App\Models\Like;
-use App\Http\Resources\PostResource;
+use App\Models\Product;
+use App\Models\ProductPicture;
+use App\Models\ProductPrice;
+use App\Http\Resources\ProductResource;
 
-class PostController extends Controller
+class ProductController extends Controller
 {
     //
     public function index(Request $request) 
@@ -28,15 +28,15 @@ class PostController extends Controller
         $validator->validate();
         $data = $validator->validated();
 
-        $queryset = Post::all();
+        $queryset = Product::all();
         foreach ($data as $key => $value) {
             $queryset = $queryset->where($key, $value);
         }
-        return PostResource::collection($queryset->sortByDesc('created_at'));
+        return ProductResource::collection($queryset->sortByDesc('created_at'));
     }
-    public function show(Request $request, Post $post) 
+    public function show(Request $request, Product $product) 
     {
-        return new PostResource($post);
+        return new ProductResource($product);
     }
     public function store(Request $request) 
     {
@@ -44,7 +44,12 @@ class PostController extends Controller
             'title' => ['required', 'max:256'],
             'description' => ['required', 'max:2048'],
             'pictures' => ['required'],
-            'pictures.*.file' => ['required', 'mimes:jpeg,png,jpg,gif,svg', 'image', 'max:2048'], 
+            'pictures.*.file' => ['required', 
+                    'mimes:jpeg,png,jpg,gif,svg', 
+                    'image', 'max:2048'], 
+            // 'price' => ['required'],
+            'price.bought_price' => ['required', 'integer'],
+            'price.selling_price' => ['required', 'integer'],
         ]);
         $validator->validate();
         $validated_data = $validator->validated();
@@ -52,6 +57,8 @@ class PostController extends Controller
 
         $pictures = $validated_data['pictures'];
         unset($validated_data['pictures']);
+        $price = $validated_data['price'];
+        unset($validated_data['price']);
 
         if (sizeof($pictures) > 3) {
             throw \Illuminate\Validation\ValidationException::withMessages([
@@ -62,20 +69,20 @@ class PostController extends Controller
                 'pictures' => ['Pictures most not be less than 1'],
             ]);          
         }
-
-        $new_post = Post::create($validated_data);
+        $new_product = Product::create($validated_data);
+        ProductPrice::create($price + ['product_id'=>$new_product->id]);
         foreach ($pictures as $picture) {
-            PostPicture::save_and_create(
-                $picture['file'], $new_post->id,
+            $a = ProductPicture::save_and_create(
+                $picture['file'], $new_product->id,
             );
         }
 
-        return new PostResource($new_post);
+        return new ProductResource($new_product);
     }
     
-    public function update(Request $request, Post $post) 
+    public function update(Request $request, Product $product) 
     { # this function only updates the post not it files
-        if (auth()->user()->id !== $post->user_id) {
+        if (auth()->user()->id !== $product->user_id) {
             return response()->json([
                 'message' => 'You are not authorized to access'
             ], 403);
@@ -94,25 +101,25 @@ class PostController extends Controller
         //     unset($validated_data['pictures']);
 
         // }
-        $post->update($validated_data);
-        return new PostResource($post);
+        $product->update($validated_data);
+        return new ProductResource($product);
         // $category->update($request->all());
         // return $category;
     }
-    public function destroy(Request $request, Post $post) 
+    public function destroy(Request $request, Product $product) 
     {
-        if (auth()->user()->id !== $post->user_id) {
+        if (auth()->user()->id !== $product->user_id) {
             return response()->json([
                 'message' => 'You are not authorized to access'
             ], 403);
         }
-        $post->delete();
+        $product->delete();
         return response()->json([], 204);
     }
     
-    public function add_picture(Request $request, Post $post) 
+    public function add_picture(Request $request, Product $product) 
     {
-        if (auth()->user()->id !== $post->user_id) {
+        if (auth()->user()->id !== $product->user_id) {
             return response()->json([
                 'message' => 'You are not authorized to access'
             ], 403);
@@ -124,7 +131,7 @@ class PostController extends Controller
         $validator->validate();
         $file = $validator->validated()['file'];
 
-        $old_images = $post->images;
+        $old_images = $product->images;
         if (sizeof($old_images) >= 3) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'pictures' => ['Pictures most not be more than 3'],
@@ -132,17 +139,17 @@ class PostController extends Controller
         }
 
         return response()->json([
-            'data'=> PostPicture::save_and_create(
-                $file, $post->id,
+            'data'=> ProductPicture::save_and_create(
+                $file, $product->id,
             )
         ]);
         
 
-        // return new PostResource($post);
+        // return new ProductResource($product);
     }
-    public function delete_picture(Request $request, Post $post, PostPicture $picture)
+    public function delete_picture(Request $request, Product $product, ProductPicture $picture)
     {
-        if ($picture->post_id !== $post->id || $post->user_id !== auth()->user()->id) {
+        if ($picture->product_id !== $product->id || $product->user_id !== auth()->user()->id) {
             return response()->json([
                 'message' => 'You are not authorized to access'
             ], 403);
@@ -150,16 +157,23 @@ class PostController extends Controller
         $picture->delete();
         return response()->json([], 204);
     }
-    public function toggle_like(Request $request, Post $post) {
-        $user_id = auth()->user()->id;
-        $post_id = $post->id;
-        $liked = Like::where(['user_id'=>$user_id, 'post_id'=>$post_id])->first();
-        if ($liked !==null) {
-            $liked->delete();
-            return response()->json([], 204);
-        } else {
-            Like::create(['user_id'=>$user_id, 'post_id'=>$post_id]);
-            return response()->json([], 200);
+    public function update_price(Request $request, Product $product) 
+    {
+        if (auth()->user()->id !== $product->user_id) {
+            return response()->json([
+                'message' => 'You are not authorized to access'
+            ], 403);
         }
+
+        $validator = Validator::make($request->all(), [
+            'bought_price' => ['integer', 'required'],
+            'selling_price' => ['integer', 'required'],
+        ]);
+        $validator->validate();
+        $validated_data = $validator->validated();
+
+        return response()->json([
+            'data' => ProductPrice::create($validated_data+['product_id'=>$product->id]),
+        ]);
     }
 }

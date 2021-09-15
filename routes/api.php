@@ -20,10 +20,21 @@ use App\Http\Controllers\Api;
 //     return $request->user();
 // });
 
-Route::apiResource('category', Api\CategoryController::class)->middleware('auth:api');
-Route::apiResource('post', Api\PostController::class)->middleware('auth:api');
-
 Route::post('auth/register', [Api\Authentication::class, 'register']);
 Route::post('auth/token/obtain', [Api\Authentication::class, 'login']);
 
-Route::post('test', [Api\TestUpload::class, 'upload']);
+Route::apiResource('post', Api\PostController::class)->middleware('auth:api');
+Route::post('post/{post}/picture', [Api\PostController::class, 'add_picture'])
+    ->middleware('auth:api');
+Route::delete('post/{post}/picture/{picture}', [Api\PostController::class, 'delete_picture'])
+    ->middleware('auth:api');
+Route::post('post/{post}/like', [Api\PostController::class, 'toggle_like'])
+    ->middleware('auth:api');
+
+Route::apiResource('product', Api\ProductController::class)->middleware('auth:api');
+Route::post('product/{product}/picture', [Api\ProductController::class, 'add_picture'])
+    ->middleware('auth:api');
+Route::delete('product/{product}/picture/{picture}', [Api\ProductController::class, 'delete_picture'])
+    ->middleware('auth:api');
+Route::put('product/{product}/price/', [Api\ProductController::class, 'update_price'])
+    ->middleware('auth:api');

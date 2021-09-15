@@ -25,10 +25,12 @@ class Authentication extends Controller
         $token = $auth->attempt(['mobile' => $data['mobile'], 'password' => $data['password']]);
         if ($token) {
             return response()->json([
+                'data' => [
+                    'access_token' => $token,
+                    'token_type' => 'bearer',
+                    'expires_in' => $auth->factory()->getTTL() * 60
+                ],
                 'message'=> 'Successfull login',
-                'access_token' => $token,
-                'token_type' => 'bearer',
-                'expires_in' => $auth->factory()->getTTL() * 60
             ]);
         } else {
             return response()->json([
@@ -54,7 +56,7 @@ class Authentication extends Controller
         ]);
 
         return response()->json([
-            'user' => $user,
+            'data' => $user,
             'message' => 'User created successfully',
         ], 200);
     }
