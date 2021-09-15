@@ -22,17 +22,60 @@ class ProductController extends Controller
                 'user_id' => $request->user_id
             ];
         }
+        if ($request->has('sort_by_price'))
+            $filtering_params = $filtering_params + [
+                'sort_by_price' => $request->sort_by_price
+            ];
+        if ($request->has('low_limit_price'))
+            $filtering_params = $filtering_params + [
+                'low_limit_price' => $request->low_limit_price
+            ];
+        if ($request->has('high_limit_price'))
+            $filtering_params = $filtering_params + [
+                'high_limit_price' => $request->high_limit_price
+            ];
+        if ($request->has('search'))
+            $filtering_params = $filtering_params + [
+                'search' => $request->search
+            ];
+
         $validator = Validator::make($filtering_params, [
             'user_id' => ['sometimes', 'exists:users,id'],
+            'sort_by_price' => ['sometimes', 'in:desc,asc'],
+            'low_limit_price' => ['sometimes', 'integer'],
+            'high_limit_price' => ['sometimes', 'integer'],
+            'search' => ['sometimes', 'string', ]
         ]);
         $validator->validate();
-        $data = $validator->validated();
+        $filters = $validator->validated();
 
-        $queryset = Product::all();
-        foreach ($data as $key => $value) {
-            $queryset = $queryset->where($key, $value);
-        }
-        return ProductResource::collection($queryset->sortByDesc('created_at'));
+        $last_selling_price_subquery = '(select product_prices.selling_price from product_prices
+        where product_prices.product_id = products.id 
+        order by created_at desc limit 1)';
+
+        $queryset = Product::with('prices')->with('images')
+                        ->selectRaw(
+                            '*, '.$last_selling_price_subquery.' as selling_price'
+                        );
+
+
+        if ($request->has('sort_by_price')) 
+                $queryset = $queryset->orderBy('selling_price', $request->sort_by_price);
+        if ($request->has('user_id'))
+                $queryset = $queryset->where('user_id', $request->user_id);
+        if ($request->has('low_limit_price'))
+                $queryset = $queryset->whereRaw(
+                    $last_selling_price_subquery.' >= '.$request->low_limit_price);
+        if ($request->has('high_limit_price'))
+            $queryset = $queryset->whereRaw(
+                $last_selling_price_subquery.' <= '.$request->high_limit_price);
+        if ($request->has('search'))
+                $queryset = $queryset->where('description', 'like', '%'.$request->search.'%');
+
+        $queryset = $queryset->orderBy('created_at', 'desc') -> get();
+        // $queryset = $queryset->paginate(10);
+        return $queryset;
+        return ProductResource::collection($queryset);
     }
     public function show(Request $request, Product $product) 
     {

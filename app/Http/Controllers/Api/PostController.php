@@ -19,20 +19,26 @@ class PostController extends Controller
         $filtering_params = [];
         if ($request->has('user_id')) {
             $filtering_params = $filtering_params + [
-                'user_id' => $request->user_id
+                'user_id' => $request->user_id,
             ];
         }
+        
         $validator = Validator::make($filtering_params, [
             'user_id' => ['sometimes', 'exists:users,id'],
         ]);
         $validator->validate();
-        $data = $validator->validated();
-
-        $queryset = Post::all();
-        foreach ($data as $key => $value) {
-            $queryset = $queryset->where($key, $value);
+        $filters = $validator->validated();
+        
+        $queryset = Post::with('images')->withCount('likes');
+        if ($request->has('sort_by_like')) {
+            $queryset = $queryset->orderBy('likes_count', 'desc');
         }
-        return PostResource::collection($queryset->sortByDesc('created_at'));
+        $queryset = $queryset->orderBy('created_at', 'desc');
+        if(sizeof($filters) > 0){
+            $queryset = $queryset->where($filters);
+        }
+        $queryset = $queryset->paginate(10);
+        return PostResource::collection($queryset);
     }
     public function show(Request $request, Post $post) 
     {
