@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 
+use App\Http\Requests\Post\PostRequest;
+use App\Http\Requests\Post\PostImageRequest;
+
 use App\Models\Post;
 use App\Models\PostPicture;
 use App\Models\Like;
@@ -14,46 +17,36 @@ use App\Http\Resources\PostResource;
 class PostController extends Controller
 {
     //
-    public function index(Request $request) 
+    public function index(PostRequest $request) 
     {
         $filtering_params = [];
-        if ($request->has('user_id')) {
+        if ($request->has('user_id'))
             $filtering_params = $filtering_params + [
                 'user_id' => $request->user_id,
             ];
-        }
         
-        $validator = Validator::make($filtering_params, [
+        Validator::make($filtering_params, [
             'user_id' => ['sometimes', 'exists:users,id'],
-        ]);
-        $validator->validate();
-        $filters = $validator->validated();
-        
+        ])->validate();
+
         $queryset = Post::with('images')->withCount('likes');
         if ($request->has('sort_by_like')) {
             $queryset = $queryset->orderBy('likes_count', 'desc');
         }
         $queryset = $queryset->orderBy('created_at', 'desc');
-        if(sizeof($filters) > 0){
-            $queryset = $queryset->where($filters);
+        if($request->has('user_id')){
+            $queryset = $queryset->where('user_id', $request->user_id);
         }
         $queryset = $queryset->paginate(10);
         return PostResource::collection($queryset);
     }
-    public function show(Request $request, Post $post) 
+    public function show(PostRequest $request, Post $post) 
     {
         return new PostResource($post);
     }
-    public function store(Request $request) 
+    public function store(PostRequest $request) 
     {
-        $validator = Validator::make($request->all(), [
-            'title' => ['required', 'max:256'],
-            'description' => ['required', 'max:2048'],
-            'pictures' => ['required'],
-            'pictures.*.file' => ['required', 'mimes:jpeg,png,jpg,gif,svg', 'image', 'max:2048'], 
-        ]);
-        $validator->validate();
-        $validated_data = $validator->validated();
+        $validated_data = $request->validated();
         $validated_data['user_id'] = auth()->user()->id;
 
         $pictures = $validated_data['pictures'];
@@ -79,56 +72,21 @@ class PostController extends Controller
         return new PostResource($new_post);
     }
     
-    public function update(Request $request, Post $post) 
+    public function update(PostRequest $request, Post $post) 
     { # this function only updates the post not it files
-        if (auth()->user()->id !== $post->user_id) {
-            return response()->json([
-                'message' => 'You are not authorized to access'
-            ], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'title' => ['sometimes', 'max:256'],
-            'description' => ['sometimes', 'max:2048'],
-            // 'pictures.*.file' => ['required', 'mimes:jpeg,png,jpg,gif,svg', 'image', 'max:2048'], 
-        ]);
-        $validator->validate();
-        $validated_data = $validator->validated();
-
-        // if (array_key_exists('pictures', $validated_data)) {
-        //     $pictures = $validated_data['pictures'];
-        //     unset($validated_data['pictures']);
-
-        // }
+        $validated_data = $request->validated();
         $post->update($validated_data);
         return new PostResource($post);
-        // $category->update($request->all());
-        // return $category;
     }
-    public function destroy(Request $request, Post $post) 
+    public function destroy(PostRequest $request, Post $post) 
     {
-        if (auth()->user()->id !== $post->user_id) {
-            return response()->json([
-                'message' => 'You are not authorized to access'
-            ], 403);
-        }
         $post->delete();
         return response()->json([], 204);
     }
     
-    public function add_picture(Request $request, Post $post) 
+    public function add_picture(PostImageRequest $request, Post $post) 
     {
-        if (auth()->user()->id !== $post->user_id) {
-            return response()->json([
-                'message' => 'You are not authorized to access'
-            ], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'file' => ['required', 'mimes:jpeg,png,jpg,gif,svg', 'image', 'max:2048'], 
-        ]);
-        $validator->validate();
-        $file = $validator->validated()['file'];
+        $file = $request->validated()['file'];
 
         $old_images = $post->images;
         if (sizeof($old_images) >= 3) {
@@ -143,16 +101,9 @@ class PostController extends Controller
             )
         ]);
         
-
-        // return new PostResource($post);
     }
-    public function delete_picture(Request $request, Post $post, PostPicture $picture)
+    public function delete_picture(PostImageRequest $request, Post $post, PostPicture $picture)
     {
-        if ($picture->post_id !== $post->id || $post->user_id !== auth()->user()->id) {
-            return response()->json([
-                'message' => 'You are not authorized to access'
-            ], 403);
-        }
         $picture->delete();
         return response()->json([], 204);
     }

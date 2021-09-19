@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Authentication;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ValidatePictures extends FormRequest
+class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -13,7 +13,7 @@ class ValidatePictures extends FormRequest
      */
     public function authorize()
     {
-        return false;
+        return true;
     }
 
     /**
@@ -24,7 +24,8 @@ class ValidatePictures extends FormRequest
     public function rules()
     {
         return [
-            //
+            'mobile' => ['required', 'max:11', 'min:11', 'regex:/(09)[0-9]{9}/'],
+            'password' => ['required', 'min:3'],
         ];
     }
 }

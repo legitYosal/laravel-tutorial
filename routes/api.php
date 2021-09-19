@@ -20,6 +20,10 @@ use App\Http\Controllers\Api;
 //     return $request->user();
 // });
 
+Route::put('internal/private/change-user-notif-token', [Api\Internal\UserController::class, 'set_user_notif_token']);
+
+Route::get('index', [Api\IndexController::class, 'index'])->middleware('auth:api');
+
 Route::post('auth/register', [Api\Authentication::class, 'register']);
 Route::post('auth/token/obtain', [Api\Authentication::class, 'login']);
 
