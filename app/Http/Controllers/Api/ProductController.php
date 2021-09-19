@@ -94,11 +94,11 @@ class ProductController extends Controller
 
         if (sizeof($pictures) > 3) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'pictures' => ['Pictures most not be more than 3'],
+                'pictures' => [__('lang.Pictures most not be more than 3')],
             ]);          
         } else if (sizeof($pictures) < 1) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'pictures' => ['Pictures most not be less than 1'],
+                'pictures' => [__('lang.Pictures most not be less than 1')],
             ]);          
         }
         $new_product = Product::create($validated_data);
@@ -132,7 +132,7 @@ class ProductController extends Controller
         $old_images = $product->images;
         if (sizeof($old_images) >= 3) {
             throw \Illuminate\Validation\ValidationException::withMessages([
-                'pictures' => ['Pictures most not be more than 3'],
+                'pictures' => [__('lang.Pictures most not be more than 3')],
             ]);          
         }
 
