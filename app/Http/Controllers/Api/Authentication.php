@@ -8,19 +8,16 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 
 use App\Models\User;
+use App\Http\Requests\Authentication\LoginRequest;
+use App\Http\Requests\Authentication\RegisterRequest;
 
 class Authentication extends Controller
 {
     use \App\Traits\GetAuthObject;
 
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'mobile' => ['required', 'max:11', 'min:11', 'regex:/(09)[0-9]{9}/'],
-            'password' => ['required', 'min:3'],
-        ]);
-        $validator->validate();
-        $data = $validator->validated();
+        $data = $request->validated();
         $auth = $this->get_auth();
         $token = $auth->attempt(['mobile' => $data['mobile'], 'password' => $data['password']]);
         if ($token) {
@@ -39,15 +36,9 @@ class Authentication extends Controller
         }
     }
 
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'name' => ['required'],
-            'mobile' => ['required', 'max:11', 'min:11', 'regex:/(09)[0-9]{9}/', 'unique:users'],
-            'password' => ['required', 'min:3'],
-        ]);
-        $validator->validate();
-        $data = $validator->validated();
+        $data = $request->validated();
 
         $user = User::create([
             'name'=> $data['name'],

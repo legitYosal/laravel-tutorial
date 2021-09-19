@@ -11,10 +11,14 @@ use App\Models\ProductPicture;
 use App\Models\ProductPrice;
 use App\Http\Resources\ProductResource;
 
+use App\Http\Requests\Product\ProductRequest;
+use App\Http\Requests\Product\ProductImageRequest;
+use App\Http\Requests\Product\ProductPriceRequest;
+
 class ProductController extends Controller
 {
     //
-    public function index(Request $request) 
+    public function index(ProductRequest $request) 
     {
         $filtering_params = [];
         if ($request->has('user_id')) {
@@ -39,15 +43,13 @@ class ProductController extends Controller
                 'search' => $request->search
             ];
 
-        $validator = Validator::make($filtering_params, [
+        Validator::make($filtering_params, [
             'user_id' => ['sometimes', 'exists:users,id'],
             'sort_by_price' => ['sometimes', 'in:desc,asc'],
             'low_limit_price' => ['sometimes', 'integer'],
             'high_limit_price' => ['sometimes', 'integer'],
             'search' => ['sometimes', 'string', ]
-        ]);
-        $validator->validate();
-        $filters = $validator->validated();
+        ])->validate();
 
         $last_selling_price_subquery = '(select product_prices.selling_price from product_prices
         where product_prices.product_id = products.id 
@@ -72,30 +74,17 @@ class ProductController extends Controller
         if ($request->has('search'))
                 $queryset = $queryset->where('description', 'like', '%'.$request->search.'%');
 
-        $queryset = $queryset->orderBy('created_at', 'desc') -> get();
-        // $queryset = $queryset->paginate(10);
-        return $queryset;
+        $queryset = $queryset->orderBy('created_at', 'desc');
+        $queryset = $queryset->paginate(10);
         return ProductResource::collection($queryset);
     }
-    public function show(Request $request, Product $product) 
+    public function show(ProductRequest $request, Product $product) 
     {
         return new ProductResource($product);
     }
-    public function store(Request $request) 
+    public function store(ProductRequest $request) 
     {
-        $validator = Validator::make($request->all(), [
-            'title' => ['required', 'max:256'],
-            'description' => ['required', 'max:2048'],
-            'pictures' => ['required'],
-            'pictures.*.file' => ['required', 
-                    'mimes:jpeg,png,jpg,gif,svg', 
-                    'image', 'max:2048'], 
-            // 'price' => ['required'],
-            'price.bought_price' => ['required', 'integer'],
-            'price.selling_price' => ['required', 'integer'],
-        ]);
-        $validator->validate();
-        $validated_data = $validator->validated();
+        $validated_data = $request->validated();
         $validated_data['user_id'] = auth()->user()->id;
 
         $pictures = $validated_data['pictures'];
@@ -123,56 +112,22 @@ class ProductController extends Controller
         return new ProductResource($new_product);
     }
     
-    public function update(Request $request, Product $product) 
+    public function update(ProductRequest $request, Product $product) 
     { # this function only updates the post not it files
-        if (auth()->user()->id !== $product->user_id) {
-            return response()->json([
-                'message' => 'You are not authorized to access'
-            ], 403);
-        }
+        $validated_data = $request->validated();
 
-        $validator = Validator::make($request->all(), [
-            'title' => ['sometimes', 'max:256'],
-            'description' => ['sometimes', 'max:2048'],
-            // 'pictures.*.file' => ['required', 'mimes:jpeg,png,jpg,gif,svg', 'image', 'max:2048'], 
-        ]);
-        $validator->validate();
-        $validated_data = $validator->validated();
-
-        // if (array_key_exists('pictures', $validated_data)) {
-        //     $pictures = $validated_data['pictures'];
-        //     unset($validated_data['pictures']);
-
-        // }
         $product->update($validated_data);
         return new ProductResource($product);
-        // $category->update($request->all());
-        // return $category;
     }
-    public function destroy(Request $request, Product $product) 
+    public function destroy(ProductRequest $request, Product $product) 
     {
-        if (auth()->user()->id !== $product->user_id) {
-            return response()->json([
-                'message' => 'You are not authorized to access'
-            ], 403);
-        }
         $product->delete();
         return response()->json([], 204);
     }
     
-    public function add_picture(Request $request, Product $product) 
+    public function add_picture(ProductImageRequest $request, Product $product) 
     {
-        if (auth()->user()->id !== $product->user_id) {
-            return response()->json([
-                'message' => 'You are not authorized to access'
-            ], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'file' => ['required', 'mimes:jpeg,png,jpg,gif,svg', 'image', 'max:2048'], 
-        ]);
-        $validator->validate();
-        $file = $validator->validated()['file'];
+        $file = $request->validated()['file'];
 
         $old_images = $product->images;
         if (sizeof($old_images) >= 3) {
@@ -186,34 +141,15 @@ class ProductController extends Controller
                 $file, $product->id,
             )
         ]);
-        
-
-        // return new ProductResource($product);
     }
-    public function delete_picture(Request $request, Product $product, ProductPicture $picture)
+    public function delete_picture(ProductImageRequest $request, Product $product, ProductPicture $picture)
     {
-        if ($picture->product_id !== $product->id || $product->user_id !== auth()->user()->id) {
-            return response()->json([
-                'message' => 'You are not authorized to access'
-            ], 403);
-        }
         $picture->delete();
         return response()->json([], 204);
     }
-    public function update_price(Request $request, Product $product) 
+    public function update_price(ProductPriceRequest $request, Product $product) 
     {
-        if (auth()->user()->id !== $product->user_id) {
-            return response()->json([
-                'message' => 'You are not authorized to access'
-            ], 403);
-        }
-
-        $validator = Validator::make($request->all(), [
-            'bought_price' => ['integer', 'required'],
-            'selling_price' => ['integer', 'required'],
-        ]);
-        $validator->validate();
-        $validated_data = $validator->validated();
+        $validated_data = $request->validated();
 
         return response()->json([
             'data' => ProductPrice::create($validated_data+['product_id'=>$product->id]),
