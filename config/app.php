@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'secret_internal_service_bearer_token' => env('SECRET_INTERNAL_SERVICE_BEARER_TOKEN'),
+
 
     /*
     |--------------------------------------------------------------------------

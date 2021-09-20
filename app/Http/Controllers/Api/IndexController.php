@@ -23,7 +23,6 @@ class IndexController extends Controller
         # 10 most liked posts
 
         $popular_posts = Cache::remember('popular_posts', $this->caching_timeout, function () {
-            error_log('awefawefa');
             return Post::baseQuery()
                 ->orderBy('likes_count', 'desc')
                 ->orderBy('created_at', 'desc')->take(10)->get();
