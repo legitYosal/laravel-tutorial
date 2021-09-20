@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 
-use App\Http\Requests\Post\PostRequest;
+use App\Http\Requests\Post\PostIndexRequest;
+use App\Http\Requests\Post\PostDestroyRequest;
+use App\Http\Requests\Post\PostStoreRequest;
+use App\Http\Requests\Post\PostUpdateRequest;
 use App\Http\Requests\Post\PostImageRequest;
 
 use App\Models\Post;
@@ -17,19 +20,19 @@ use App\Http\Resources\PostResource;
 class PostController extends Controller
 {
     //
-    public function index(PostRequest $request) 
+    public function index(PostIndexRequest $request) 
     {
-        $filtering_params = [];
-        if ($request->has('user_id'))
-            $filtering_params = $filtering_params + [
-                'user_id' => $request->user_id,
-            ];
+        // $filtering_params = [];
+        // if ($request->has('user_id'))
+        //     $filtering_params = $filtering_params + [
+        //         'user_id' => $request->user_id,
+        //     ];
         
-        Validator::make($filtering_params, [
-            'user_id' => ['sometimes', 'exists:users,id'],
-        ])->validate();
+        // Validator::make($filtering_params, [
+        //     'user_id' => ['sometimes', 'exists:users,id'],
+        // ])->validate();
 
-        $queryset = Post::with('images')->withCount('likes');
+        $queryset = Post::baseQuery();
         if ($request->has('sort_by_like')) {
             $queryset = $queryset->orderBy('likes_count', 'desc');
         }
@@ -40,27 +43,17 @@ class PostController extends Controller
         $queryset = $queryset->paginate(10);
         return PostResource::collection($queryset);
     }
-    public function show(PostRequest $request, Post $post) 
+    public function show(PostIndexRequest $request, Post $post) 
     {
         return new PostResource($post);
     }
-    public function store(PostRequest $request) 
+    public function store(PostStoreRequest $request) 
     {
         $validated_data = $request->validated();
         $validated_data['user_id'] = auth()->user()->id;
 
         $pictures = $validated_data['pictures'];
         unset($validated_data['pictures']);
-
-        if (sizeof($pictures) > 3) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'pictures' => [__('lang.Pictures most not be more than 3')],
-            ]);          
-        } else if (sizeof($pictures) < 1) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'pictures' => [__('lang.Pictures most not be less than 1')],
-            ]);          
-        }
 
         $new_post = Post::create($validated_data);
         foreach ($pictures as $picture) {
@@ -72,13 +65,13 @@ class PostController extends Controller
         return new PostResource($new_post);
     }
     
-    public function update(PostRequest $request, Post $post) 
+    public function update(PostUpdateRequest $request, Post $post) 
     { # this function only updates the post not it files
         $validated_data = $request->validated();
         $post->update($validated_data);
         return new PostResource($post);
     }
-    public function destroy(PostRequest $request, Post $post) 
+    public function destroy(PostDestroyRequest $request, Post $post) 
     {
         $post->delete();
         return response()->json([], 204);
@@ -87,13 +80,6 @@ class PostController extends Controller
     public function add_picture(PostImageRequest $request, Post $post) 
     {
         $file = $request->validated()['file'];
-
-        $old_images = $post->images;
-        if (sizeof($old_images) >= 3) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
-                'pictures' => [__('lang.Pictures most not be more than 3')],
-            ]);          
-        }
 
         return response()->json([
             'data'=> PostPicture::save_and_create(

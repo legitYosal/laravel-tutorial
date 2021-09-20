@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests\Post;
 
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Request as FacadesRequest;
 
-class PostImageRequest extends PostRequest
+class PostImageRequest extends FormRequest
 {
   /**
      * Determine if the user is authorized to make this request.
@@ -28,10 +29,17 @@ class PostImageRequest extends PostRequest
      */
     public function rules()
     {
-        if (FacadesRequest::isMethod('post'))
+        if (FacadesRequest::isMethod('post')) {
+            $old_images = $this->route('post')->images;
+            if (sizeof($old_images) >= 3) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'pictures' => [__('lang.Pictures most not be more than 3')],
+                ]);          
+            }
             return [
                 'file' => ['required', 'mimes:jpeg,png,jpg,gif,svg', 'image', 'max:2048'], 
             ];
+        }
         else if (FacadesRequest::isMethod('delete'))
             return [];
     }
