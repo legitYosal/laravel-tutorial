@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use SebastianBergmann\Environment\Console;
 
 /*
 |--------------------------------------------------------------------------
@@ -16,3 +17,8 @@ use Illuminate\Support\Facades\Route;
 // Route::get('/', function () {
 //     return view('welcome');
 // });
+use Illuminate\Support\Facades\Request;
+
+$availableLanguages = config('app.available_locales');
+$lang = Request::getPreferredLanguage($availableLanguages);
+if ($lang) config(['app.locale'=> $lang]);
