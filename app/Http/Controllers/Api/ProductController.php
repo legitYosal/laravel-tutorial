@@ -20,7 +20,8 @@ use App\Http\Requests\Product\ProductDestroyRequest;
 
 class ProductController extends Controller
 {
-    //
+    public $page_size = 10;
+
     public function index(ProductIndexRequest $request) 
     {
         $queryset = Product::with('prices')->with('images')
@@ -38,7 +39,7 @@ class ProductController extends Controller
                 $queryset = $queryset->where('description', 'like', '%'.$request->search.'%');
 
         $queryset = $queryset->orderBy('created_at', 'desc');
-        $queryset = $queryset->paginate(10);
+        $queryset = $queryset->paginate($this->page_size);
         return ProductResource::collection($queryset);
     }
     public function show(ProductIndexRequest $request, Product $product) 
@@ -87,7 +88,7 @@ class ProductController extends Controller
             'data'=> ProductPicture::save_and_create(
                 $file, $product->id,
             )
-        ]);
+        ], 201);
     }
     public function delete_picture(ProductImageRequest $request, Product $product, ProductPicture $picture)
     {
@@ -100,6 +101,6 @@ class ProductController extends Controller
 
         return response()->json([
             'data' => ProductPrice::create($validated_data+['product_id'=>$product->id]),
-        ]);
+        ], 201);
     }
 }

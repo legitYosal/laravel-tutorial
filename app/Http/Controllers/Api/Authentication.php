@@ -49,6 +49,6 @@ class Authentication extends Controller
         return response()->json([
             'data' => $user,
             'message' => 'User created successfully',
-        ], 200);
+        ], 201);
     }
 }

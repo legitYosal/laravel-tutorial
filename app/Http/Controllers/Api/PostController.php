@@ -20,18 +20,10 @@ use App\Http\Resources\PostResource;
 class PostController extends Controller
 {
     //
+    public $page_size = 10;
+
     public function index(PostIndexRequest $request) 
     {
-        // $filtering_params = [];
-        // if ($request->has('user_id'))
-        //     $filtering_params = $filtering_params + [
-        //         'user_id' => $request->user_id,
-        //     ];
-        
-        // Validator::make($filtering_params, [
-        //     'user_id' => ['sometimes', 'exists:users,id'],
-        // ])->validate();
-
         $queryset = Post::baseQuery();
         if ($request->has('sort_by_like')) {
             $queryset = $queryset->orderBy('likes_count', 'desc');
@@ -40,7 +32,7 @@ class PostController extends Controller
         if($request->has('user_id')){
             $queryset = $queryset->where('user_id', $request->user_id);
         }
-        $queryset = $queryset->paginate(10);
+        $queryset = $queryset->paginate($this->page_size);
         return PostResource::collection($queryset);
     }
     public function show(PostIndexRequest $request, Post $post) 
@@ -85,7 +77,7 @@ class PostController extends Controller
             'data'=> PostPicture::save_and_create(
                 $file, $post->id,
             )
-        ]);
+        ], 201);
         
     }
     public function delete_picture(PostImageRequest $request, Post $post, PostPicture $picture)
@@ -102,7 +94,7 @@ class PostController extends Controller
             return response()->json([], 204);
         } else {
             Like::create(['user_id'=>$user_id, 'post_id'=>$post_id]);
-            return response()->json([], 200);
+            return response()->json([], 201);
         }
     }
 }

@@ -33,7 +33,7 @@ class ProductImageRequest extends FormRequest
             $old_images = $this->route('product')->images;
             if (sizeof($old_images) >= 3) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    'pictures' => [__('lang.Pictures most not be more than 3')],
+                    'pictures' => [__('lang.Pictures must not be more than 3')],
                 ]);          
             }
             return [

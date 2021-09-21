@@ -35,8 +35,8 @@ class PostStoreRequest extends FormRequest
     public function messages()
     {
         return [
-            'pictures.max' => __('lang.Pictures most not be more than 3'),
-            'pictures.min' => __('lang.Pictures most not be less than 1'),
+            'pictures.max' => __('lang.Pictures must not be more than 3'),
+            'pictures.min' => __('lang.Pictures must not be less than 1'),
         ];
     }
 }
