@@ -1,21 +1,16 @@
 <?php
 
 namespace Tests;
-
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use Illuminate\Foundation\Testing\WithFaker;
+
 use Illuminate\Support\Facades\Storage;
 use App\Models\User;
-use phpDocumentor\Reflection\Types\Callable_;
+use Tests\BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
     use RefreshDatabase;
-    use CreatesApplication;
-    use WithFaker;
-    use \App\Traits\FakeImage;
-    use \Tests\Helpers\GetFakeUser;
+
 
     public  function setUp(): void {
         parent::setUp();

@@ -7,4 +7,8 @@ trait GetAuthObject {
     {
         return auth();
     }
+    protected function get_user(): object
+    {
+        return auth()->user();
+    }
 }

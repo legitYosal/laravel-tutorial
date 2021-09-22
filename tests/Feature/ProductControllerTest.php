@@ -28,17 +28,13 @@ class ProductControllerTest extends TestCase
 
     public function test_get_method() {
         $response = $this->baseAuthRequest()
-            ->get($this->basePathRoute);
+            ->get($this->basePathRoute.$this->product->id.'/');
         $response
             ->assertJson(fn (AssertableJson $json) => 
-                $json->has('meta')
-                    ->has('links')
-                    ->has('data')
-                    ->has('data.0', fn($json) =>
-                        $json->where('id', $this->product->id)
-                            ->where('title', $this->product->title)
-                            ->etc()
-                    )
+                $json->has('data')
+                    ->where('data.id', $this->product->id)
+                    ->where('data.title', $this->product->title)
+                    ->etc()
             );
     }
     public function test_post_method() { 
