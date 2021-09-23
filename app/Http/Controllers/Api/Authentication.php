@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
 
 use App\Models\User;
 use App\Http\Requests\Authentication\LoginRequest;
 use App\Http\Requests\Authentication\RegisterRequest;
+use Symfony\Component\HttpFoundation\Response;
 
 class Authentication extends Controller
 {
@@ -32,7 +31,7 @@ class Authentication extends Controller
         } else {
             return response()->json([
                 'message'=> 'Mobile or password was wrong',
-            ], 403);
+            ], Response::HTTP_FORBIDDEN);
         }
     }
 
@@ -49,6 +48,6 @@ class Authentication extends Controller
         return response()->json([
             'data' => $user,
             'message' => 'User created successfully',
-        ], 200);
+        ], Response::HTTP_CREATED);
     }
 }

@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 use App\Http\Requests\Post\PostIndexRequest;
 use App\Http\Requests\Post\PostDestroyRequest;
@@ -20,18 +20,10 @@ use App\Http\Resources\PostResource;
 class PostController extends Controller
 {
     //
+    public $page_size = 10;
+
     public function index(PostIndexRequest $request) 
     {
-        // $filtering_params = [];
-        // if ($request->has('user_id'))
-        //     $filtering_params = $filtering_params + [
-        //         'user_id' => $request->user_id,
-        //     ];
-        
-        // Validator::make($filtering_params, [
-        //     'user_id' => ['sometimes', 'exists:users,id'],
-        // ])->validate();
-
         $queryset = Post::baseQuery();
         if ($request->has('sort_by_like')) {
             $queryset = $queryset->orderBy('likes_count', 'desc');
@@ -40,7 +32,7 @@ class PostController extends Controller
         if($request->has('user_id')){
             $queryset = $queryset->where('user_id', $request->user_id);
         }
-        $queryset = $queryset->paginate(10);
+        $queryset = $queryset->paginate($this->page_size);
         return PostResource::collection($queryset);
     }
     public function show(PostIndexRequest $request, Post $post) 
@@ -74,7 +66,7 @@ class PostController extends Controller
     public function destroy(PostDestroyRequest $request, Post $post) 
     {
         $post->delete();
-        return response()->json([], 204);
+        return response()->json([], Response::HTTP_NO_CONTENT);
     }
     
     public function add_picture(PostImageRequest $request, Post $post) 
@@ -85,13 +77,13 @@ class PostController extends Controller
             'data'=> PostPicture::save_and_create(
                 $file, $post->id,
             )
-        ]);
+        ], Response::HTTP_CREATED);
         
     }
     public function delete_picture(PostImageRequest $request, Post $post, PostPicture $picture)
     {
         $picture->delete();
-        return response()->json([], 204);
+        return response()->json([], Response::HTTP_NO_CONTENT);
     }
     public function toggle_like(Request $request, Post $post) {
         $user_id = auth()->user()->id;
@@ -99,10 +91,10 @@ class PostController extends Controller
         $liked = Like::where(['user_id'=>$user_id, 'post_id'=>$post_id])->first();
         if ($liked !==null) {
             $liked->delete();
-            return response()->json([], 204);
+            return response()->json([], Response::HTTP_NO_CONTENT);
         } else {
             Like::create(['user_id'=>$user_id, 'post_id'=>$post_id]);
-            return response()->json([], 200);
+            return response()->json([], Response::HTTP_CREATED);
         }
     }
 }

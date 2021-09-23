@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 class PostPictureFactory extends Factory
 {
+    use \App\Traits\FakeImage;
     /**
      * The name of the factory's corresponding model.
      *
@@ -22,9 +23,10 @@ class PostPictureFactory extends Factory
      */
     public function definition()
     {
+        $image_file = $this->randomFakeImage();
         return [
-            'image_name'=>$this->faker->name,
-            'image_path'=> $this->faker->file('public/files'),
+            'image_name'=>$image_file->name,
+            'image_path'=> 'storage/'.$image_file->name,
             'post_id'=>Post::factory()->create()->id,
         ];
     }

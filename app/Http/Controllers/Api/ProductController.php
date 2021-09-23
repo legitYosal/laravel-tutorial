@@ -3,13 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 use App\Models\Product;
 use App\Models\ProductPicture;
 use App\Models\ProductPrice;
 use App\Http\Resources\ProductResource;
+use Symfony\Component\HttpFoundation\Response;
 
 use App\Http\Requests\Product\ProductImageRequest;
 use App\Http\Requests\Product\ProductPriceRequest;
@@ -20,7 +19,8 @@ use App\Http\Requests\Product\ProductDestroyRequest;
 
 class ProductController extends Controller
 {
-    //
+    public $page_size = 10;
+
     public function index(ProductIndexRequest $request) 
     {
         $queryset = Product::with('prices')->with('images')
@@ -38,7 +38,7 @@ class ProductController extends Controller
                 $queryset = $queryset->where('description', 'like', '%'.$request->search.'%');
 
         $queryset = $queryset->orderBy('created_at', 'desc');
-        $queryset = $queryset->paginate(10);
+        $queryset = $queryset->paginate($this->page_size);
         return ProductResource::collection($queryset);
     }
     public function show(ProductIndexRequest $request, Product $product) 
@@ -76,7 +76,7 @@ class ProductController extends Controller
     public function destroy(ProductDestroyRequest $request, Product $product) 
     {
         $product->delete();
-        return response()->json([], 204);
+        return response()->json([], Response::HTTP_NO_CONTENT);
     }
     
     public function add_picture(ProductImageRequest $request, Product $product) 
@@ -87,12 +87,12 @@ class ProductController extends Controller
             'data'=> ProductPicture::save_and_create(
                 $file, $product->id,
             )
-        ]);
+        ], Response::HTTP_CREATED);
     }
     public function delete_picture(ProductImageRequest $request, Product $product, ProductPicture $picture)
     {
         $picture->delete();
-        return response()->json([], 204);
+        return response()->json([], Response::HTTP_NO_CONTENT);
     }
     public function update_price(ProductPriceRequest $request, Product $product) 
     {
@@ -100,6 +100,6 @@ class ProductController extends Controller
 
         return response()->json([
             'data' => ProductPrice::create($validated_data+['product_id'=>$product->id]),
-        ]);
+        ], Response::HTTP_CREATED);
     }
 }
