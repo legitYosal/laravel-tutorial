@@ -15,13 +15,13 @@ class LikeLimitTest extends BaseTestCase
             'posts.like_limit_per_user_count' => $user_like_limit,
         ]);
 
-        $this->assertTrue($user->checkCanLike() === true);
+        $this->assertTrue($user->checkCanLike());
 
         for ($i=0; $i < $user_like_limit; $i++) {
             $user->incrementUserLikes();
         }
 
-        $this->assertTrue($user->checkCanLike() === false);
+        $this->assertFalse($user->checkCanLike());
 
     }
 }

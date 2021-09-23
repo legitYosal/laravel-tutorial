@@ -91,9 +91,6 @@ class PostController extends Controller
         $user = $this->get_user();
         $post_id = $post->id;
         $liked = Like::where(['user_id'=>$user->id, 'post_id'=>$post_id])->first();
-        // return response()->json(
-        //     $user->getLimitedLikeErrorData(), 429
-        // );
         if ($liked !==null) {
             $liked->delete();
             return response()->json([], Response::HTTP_NO_CONTENT);

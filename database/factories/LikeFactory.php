@@ -25,8 +25,12 @@ class LikeFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => User::factory()->create()->id,
-            'post_id' => Post::factory()->create()->id,
+            'user_id' => function () {
+                User::factory()->create()->id;
+            },
+            'post_id' => function () {
+                Post::factory()->create()->id;
+            } 
         ];
     }
 }

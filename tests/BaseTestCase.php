@@ -3,10 +3,12 @@
 namespace Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\TestCase as BaseBaseTestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Artisan;
+use App\Models\User;
 
 abstract class BaseTestCase extends BaseBaseTestCase 
 {
@@ -33,6 +35,8 @@ abstract class BaseTestCase extends BaseBaseTestCase
 
         $this->setUpData();
     }
-
+    protected $defaultHeaders = [
+        'Accept' => 'application/json',
+    ];
     protected function setUpData() {}
 }

@@ -27,7 +27,9 @@ class PostPictureFactory extends Factory
         return [
             'image_name'=>$image_file->name,
             'image_path'=> 'storage/'.$image_file->name,
-            'post_id'=>Post::factory()->create()->id,
+            'post_id'=> function () {
+                Post::factory()->create()->id;
+            },
         ];
     }
 }

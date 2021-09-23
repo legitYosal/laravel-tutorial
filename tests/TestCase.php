@@ -1,26 +1,11 @@
 <?php
 
 namespace Tests;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-use Illuminate\Support\Facades\Storage;
 use App\Models\User;
 use Tests\BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
-    use RefreshDatabase;
-
-
-    public  function setUp(): void {
-        parent::setUp();
-
-        $this->setUpFaker();
-        
-        Storage::fake('local');
-        
-        $this->setUpData();
-    }
 
     protected function setUpData() {
         $this->user = $this->getFakeUser();
@@ -37,9 +22,6 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
-    protected $defaultHeaders = [
-        'Accept' => 'application/json',
-    ];
     protected function baseAuthRequest() {
         $this->assertUserIsNull();
         return $this->actingAs($this->user, 'api')

@@ -23,7 +23,9 @@ class ProductFactory extends Factory
     public function definition()
     {
         return [
-            'user_id' => User::factory()->create()->id,
+            'user_id' => function () {
+                User::factory()->create()->id;
+            },
             'description' => $this->faker->text(),
             'title' => $this->faker->name(),
         ];
