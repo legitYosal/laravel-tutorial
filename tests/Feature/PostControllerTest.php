@@ -26,17 +26,13 @@ class PostControllerTest extends TestCase
 
     public function test_get_method() {
         $response = $this->baseAuthRequest()
-            ->get($this->basePathRoute);
+            ->get($this->basePathRoute.$this->post->id.'/');
         $response
             ->assertJson(fn (AssertableJson $json) => 
-                $json->has('meta')
-                    ->has('links')
-                    ->has('data')
-                    ->has('data.0', fn($json) =>
-                        $json->where('id', $this->post->id)
-                            ->where('title', $this->post->title)
-                            ->etc()
-                    )
+                $json->has('data')
+                    ->where('data.id', $this->post->id)
+                    ->where('data.title', $this->post->title)
+                    ->etc()
             );
     }
     public function test_post_method() { 

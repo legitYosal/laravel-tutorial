@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use DateInterval;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
-
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Authenticatable implements JWTSubject
@@ -84,5 +86,54 @@ class User extends Authenticatable implements JWTSubject
     public function notification_token()
     {
         return $this->hasOne(NotificationToken::class);
+    }
+
+    private function getUserLikeLimitCacheKey(): string
+    {
+        return config('posts.like_limit_per_user_cache_prefix').$this->id;
+    }
+    public function checkCanLike(): bool
+    {
+        $value = Cache::get($this->getUserLikeLimitCacheKey());
+        if ($value) {
+            if ($value < config('posts.like_limit_per_user_count'))
+                return true;
+            else return false;
+        } else return true;
+    }
+    public function incrementUserLikes()
+    {
+        $value = Cache::get($this->getUserLikeLimitCacheKey());
+        if ($value) {
+            Cache::increment($this->getUserLikeLimitCacheKey());
+        } else {
+            Cache::put(
+                $this->getUserLikeLimitCacheKey(),
+                1, config('posts.like_limit_per_user_duration_seconds'),
+            );
+        }
+    }
+
+    public static function getCachingFullPrefix(): string
+    {
+        return config('cache.prefix').':';
+    }
+
+    public function getLimitedLikeErrorData()
+    {   
+        $seconds = Redis::connection('cache')->command('ttl', [
+            User::getCachingFullPrefix().$this->getUserLikeLimitCacheKey()
+        ]);
+        error_log(User::getCachingFullPrefix().$this->getUserLikeLimitCacheKey());
+        $datetime = now();
+        if ($seconds > 0)
+            $datetime->add(
+                new DateInterval('PT'.$seconds.'S'),
+            );
+        return [
+            'message' => __('lang.You are not able to like'),
+            'eliminate_restriction_datetime' => $datetime,
+            'eliminate_restriction_seconds' => $seconds,
+        ];
     }
 }

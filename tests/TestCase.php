@@ -1,31 +1,11 @@
 <?php
 
 namespace Tests;
-
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
-use Illuminate\Foundation\Testing\WithFaker;
-use Illuminate\Support\Facades\Storage;
 use App\Models\User;
-use phpDocumentor\Reflection\Types\Callable_;
+use Tests\BaseTestCase;
 
 abstract class TestCase extends BaseTestCase
 {
-    use RefreshDatabase;
-    use CreatesApplication;
-    use WithFaker;
-    use \App\Traits\FakeImage;
-    use \Tests\Helpers\GetFakeUser;
-
-    public  function setUp(): void {
-        parent::setUp();
-
-        $this->setUpFaker();
-        
-        Storage::fake('local');
-        
-        $this->setUpData();
-    }
 
     protected function setUpData() {
         $this->user = $this->getFakeUser();
@@ -42,9 +22,6 @@ abstract class TestCase extends BaseTestCase
         }
     }
 
-    protected $defaultHeaders = [
-        'Accept' => 'application/json',
-    ];
     protected function baseAuthRequest() {
         $this->assertUserIsNull();
         return $this->actingAs($this->user, 'api')

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\User;
 use App\Models\Post;
 use App\Models\PostPicture;
 use App\Models\Product;
@@ -16,18 +17,19 @@ class IndexControllerTest extends TestCase
     public function setUpData()
     {
         $this->user = $this->getFakeUser();
-        $this->posts = Post::factory()->for(
-            $this->user, 'user'
-        )->has(
+
+        $this->posts = Post::factory()->has(
             PostPicture::factory()->count(3), 'images'
-        )->count(25)->create();
+        )->count(25)->create(['user_id'=>$this->user->id]);
+        
         $this->products = Product::factory()->for(
             $this->user, 'user'
         )->has(
             ProductPicture::factory()->count(2), 'images'
         )->has(
             ProductPrice::factory()->count(5), 'prices'
-        )->count(25)->create();
+        )->count(25)->create(['user_id' => $this->user->id]);
+
     }
 
     public function test_index() {
