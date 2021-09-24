@@ -21,7 +21,10 @@ class ProductResource extends JsonResource
             'user_id' => $this->user_id,
             'images' => $this->images,
             'price' => $this->prices->sortByDesc('created_at')->first(),
-
+            'likes' => $this->likes_count ? $this->likes_count:$this->likes()->count(),
+            'is_liked' => $this->likes()->where(
+                'user_id', auth()->user()->id
+            )->exists(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

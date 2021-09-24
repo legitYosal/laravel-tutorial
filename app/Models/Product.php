@@ -25,7 +25,10 @@ class Product extends Model
     {
         return $this->hasMany(ProductPrice::class);
     }
-
+    public function likes()
+    {
+        return $this->morphMany(Like::class, 'likeable');
+    }
 
     private $last_selling_price_sql = '(select product_prices.selling_price from product_prices
     where product_prices.product_id = products.id 

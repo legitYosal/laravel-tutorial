@@ -125,26 +125,28 @@ class PostControllerTest extends TestCase
             $this->basePathRoute.$this->post->id.$this->LikesPathExtenstion,
         );
         $response->assertStatus(201);
-        $this->assertDatabaseHas('likes', [
-            'user_id' => $this->user->id,
-            'post_id' => $this->post->id,
-        ]);
+        $this->assertTrue(
+            $this->post->likes()->where(
+                'user_id', $this->user->id
+            )->exists()
+        );
     }
     public function test_revoke_like_method() {
-        $like = Like::factory()->for(
-            $this->user, 'user'
-        )->for(
-            $this->post, 'post'
-        )->create();
+        $this->post->likes()->save(
+            New Like([
+                'user_id'=>$this->user->id
+            ])
+        );
 
         $response = $this->baseAuthRequest()
         ->post(
             $this->basePathRoute.$this->post->id.$this->LikesPathExtenstion,
         );
         $response->assertStatus(204);
-        $this->assertDatabaseMissing('likes', [
-            'user_id' => $this->user->id,
-            'post_id' => $this->post->id,
-        ]);
+        $this->assertFalse(
+            $this->post->likes()->where(
+                'user_id', $this->user->id
+            )->exists()
+        );
     }
 }
