@@ -50,4 +50,36 @@ class Product extends Model
             $this->last_selling_price_sql.' <= '.$high_limit
         );
     }
+
+    public function scopeBaseQuery($query)
+    {
+        return $query->with('images')
+                    ->with('prices')
+                    ->withCount('likes')
+                    ->selectRaw(
+                        '(
+                            select count(*) from `likes` 
+                                where 
+                                    `likes`.`likeable_id`=`products`.`id` 
+                                    and `likes`.`likeable_type`=? 
+                                    and `likes`.`user_id`=?
+                        ) as `is_liked`', [
+                                Product::getLikeableTypeStr(false), auth()->user()->id
+                            ]
+                    );;
+    }
+
+    public static function getLikeableTypeStr($duoble_slashes=true): string
+    {   
+        if ($duoble_slashes)
+            return addslashes(get_class(
+                New Product()
+            ));
+             // returns "App\\Models\\Product"
+        else 
+            return get_class(
+                New Product()
+            );
+            // returns "App\Models\Product"
+    }
 }

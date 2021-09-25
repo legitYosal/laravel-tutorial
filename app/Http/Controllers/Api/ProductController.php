@@ -25,8 +25,7 @@ class ProductController extends Controller
 
     public function index(ProductIndexRequest $request) 
     {
-        $queryset = Product::with('prices')->with('images')
-                        ->selectPrice();
+        $queryset = Product::baseQuery();
 
         if ($request->has('sort_by_price')) 
                 $queryset = $queryset->orderBy('selling_price', $request->sort_by_price);

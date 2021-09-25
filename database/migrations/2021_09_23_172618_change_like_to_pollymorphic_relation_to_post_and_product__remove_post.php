@@ -12,14 +12,6 @@ class ChangeLikeToPollymorphicRelationToPostAndProductRemovePost extends Migrati
      * @return void
      */
 
-    private function getPostModelLikeableType(): string
-    {
-        // return get_class(
-        //     New \App\Models\Post()
-        // );
-        return 'App\Models\Post';
-    }
-
     public function up()
     {
         Schema::table('likes', function (Blueprint $table) {
@@ -28,7 +20,7 @@ class ChangeLikeToPollymorphicRelationToPostAndProductRemovePost extends Migrati
 
             $table->renameColumn('post_id', 'likeable_id');
             $table->string('likeable_type')->default(
-                $this->getPostModelLikeableType()
+                \App\Models\Post::getLikeableTypeStr()
             );
        });
     }

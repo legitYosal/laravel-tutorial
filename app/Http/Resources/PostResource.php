@@ -21,10 +21,8 @@ class PostResource extends JsonResource
             'description' => $this->description,
             'user_id' => $this->user_id,
             'images' => $this->images,
-            'likes' => $this->likes_count ? $this->likes_count:$this->likes()->count(),
-            'is_liked' => $this->likes()->where(
-                'user_id', auth()->user()->id
-            )->exists(),
+            'likes' => $this->likes_count,
+            'is_liked' => $this->is_liked,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
