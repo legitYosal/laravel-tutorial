@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 
 use App\Models\Product;
 use App\Models\ProductPicture;
 use App\Models\ProductPrice;
+use App\Models\Like;
 use App\Http\Resources\ProductResource;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -23,8 +25,7 @@ class ProductController extends Controller
 
     public function index(ProductIndexRequest $request) 
     {
-        $queryset = Product::with('prices')->with('images')
-                        ->selectPrice();
+        $queryset = Product::baseQuery();
 
         if ($request->has('sort_by_price')) 
                 $queryset = $queryset->orderBy('selling_price', $request->sort_by_price);
@@ -101,5 +102,18 @@ class ProductController extends Controller
         return response()->json([
             'data' => ProductPrice::create($validated_data+['product_id'=>$product->id]),
         ], Response::HTTP_CREATED);
+    }
+    public function toggle_like(Request $request, Product $product) {
+        $user_id = auth()->user()->id;
+        $liked = $product->likes()->where(['user_id' => $user_id])->first();
+        if ($liked !== null) {
+            $liked->delete();
+            return response()->json([], Response::HTTP_NO_CONTENT);
+        } else {
+            $product->likes()->save(
+                New Like(['user_id' => $user_id])
+            );
+            return response()->json([], Response::HTTP_CREATED);
+        }
     }
 }

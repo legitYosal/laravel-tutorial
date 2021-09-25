@@ -6,13 +6,14 @@ use Tests\TestCase;
 use App\Models\Product;
 use App\Models\ProductPicture;
 use App\Models\ProductPrice;
-// use App\Models\Like;
+use App\Models\Like;
 use Illuminate\Testing\Fluent\AssertableJson;
 
 class ProductControllerTest extends TestCase
 {
     public $basePathRoute = '/api/product/';
     private $PicturesPathExtenstion = '/picture/';
+    private $LikesPathExtenstion = '/like/'; 
     
 
     public function setUpData()
@@ -123,6 +124,38 @@ class ProductControllerTest extends TestCase
             $this->basePathRoute.$this->product->id.$this->PicturesPathExtenstion.$picture->id.'/',
         );
         $response->assertStatus(204);
+    }
+
+
+    public function test_like_post_method() {
+        $response = $this->baseAuthRequest()
+        ->post(
+            $this->basePathRoute.$this->product->id.$this->LikesPathExtenstion,
+        );
+        $response->assertStatus(201);
+        $this->assertTrue(
+            $this->product->likes()->where(
+                'user_id', $this->user->id
+            )->exists()
+        );
+    }
+    public function test_revoke_like_method() {
+        $this->product->likes()->save(
+            New Like([
+                'user_id'=>$this->user->id
+            ])
+        );
+
+        $response = $this->baseAuthRequest()
+        ->post(
+            $this->basePathRoute.$this->product->id.$this->LikesPathExtenstion,
+        );
+        $response->assertStatus(204);
+        $this->assertFalse(
+            $this->product->likes()->where(
+                'user_id', $this->user->id
+            )->exists()
+        );
     }
 
 }

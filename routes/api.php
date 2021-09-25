@@ -43,3 +43,5 @@ Route::delete('product/{product}/picture/{picture}', [Api\ProductController::cla
     ->middleware('auth:api');
 Route::put('product/{product}/price/', [Api\ProductController::class, 'update_price'])
     ->middleware('auth:api');
+Route::post('product/{product}/like', [Api\ProductController::class, 'toggle_like'])
+    ->middleware('auth:api');
