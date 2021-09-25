@@ -21,6 +21,8 @@ use App\Http\Requests\Product\ProductDestroyRequest;
 
 class ProductController extends Controller
 {
+    use \App\Traits\GetAuthObject;
+
     public $page_size = 10;
 
     public function index(ProductIndexRequest $request) 
@@ -104,16 +106,23 @@ class ProductController extends Controller
         ], Response::HTTP_CREATED);
     }
     public function toggle_like(Request $request, Product $product) {
-        $user_id = auth()->user()->id;
-        $liked = $product->likes()->where(['user_id' => $user_id])->first();
+        $user = $this->get_user();
+        $liked = $product->likes()->where(['user_id' => $user->id])->first();
         if ($liked !== null) {
             $liked->delete();
             return response()->json([], Response::HTTP_NO_CONTENT);
         } else {
-            $product->likes()->save(
-                New Like(['user_id' => $user_id])
-            );
-            return response()->json([], Response::HTTP_CREATED);
+            if ($user->checkCanLike()) {
+                $product->likes()->save(
+                    New Like(['user_id' => $user->id])
+                );
+                $user->incrementUserLikes();
+                return response()->json([], Response::HTTP_CREATED);
+            } else {
+                return response()->json(
+                    $user->getLimitedLikeErrorData()
+                );
+            }
         }
     }
 }

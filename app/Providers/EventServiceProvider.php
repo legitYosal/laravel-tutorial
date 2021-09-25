@@ -33,5 +33,6 @@ class EventServiceProvider extends ServiceProvider
         //
         Models\Post::observe(Observers\PostObserver::class);        
         Models\Like::observe(Observers\LikeObserver::class);
+        Models\Product::observe(Observers\ProductObserver::class);
     }
 }

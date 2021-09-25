@@ -20,6 +20,8 @@ use App\Http\Resources\PostResource;
 class PostController extends Controller
 {
     //
+    use \App\Traits\GetAuthObject;
+
     public $page_size = 10;
 
     public function index(PostIndexRequest $request) 
@@ -85,17 +87,25 @@ class PostController extends Controller
         $picture->delete();
         return response()->json([], Response::HTTP_NO_CONTENT);
     }
+    
     public function toggle_like(Request $request, Post $post) {
-        $user_id = auth()->user()->id;
-        $liked = $post->likes()->where(['user_id' => $user_id])->first();
+        $user = $this->get_user();
+        $liked = $post->likes()->where(['user_id' => $user->id])->first();
         if ($liked !== null) {
             $liked->delete();
             return response()->json([], Response::HTTP_NO_CONTENT);
         } else {
-            $post->likes()->save(
-                New Like(['user_id' => $user_id])
-            );
-            return response()->json([], Response::HTTP_CREATED);
+            if ($user->checkCanLike()) {
+                $post->likes()->save(
+                    New Like(['user_id' => $user->id])
+                );
+                $user->incrementUserLikes();
+                return response()->json([], Response::HTTP_CREATED);
+            } else {
+                return response()->json(
+                    $user->getLimitedLikeErrorData(), Response::HTTP_TOO_MANY_REQUESTS
+                );
+            }
         }
     }
 }

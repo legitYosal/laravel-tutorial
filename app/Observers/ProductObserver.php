@@ -2,11 +2,12 @@
 
 namespace App\Observers;
 
-use App\Models\Post;
+use App\Models\Product;
 
-class PostObserver
+class ProductObserver
 {
-    public function created(Post $post)
+
+    public function created(Product $product)
     {
         error_log('call external service');
     }
