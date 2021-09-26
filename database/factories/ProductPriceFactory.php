@@ -24,7 +24,7 @@ class ProductPriceFactory extends Factory
     {
         return [
             'product_id'=> function () {
-                Product::factory()->create()->id;
+                return Product::factory()->create()->id;
             },
             'bought_price'=>$this->faker->numberBetween(100, 1000),
             'selling_price'=>$this->faker->numberBetween(100, 1000),

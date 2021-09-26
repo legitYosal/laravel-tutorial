@@ -27,6 +27,11 @@ class User extends Authenticatable implements JWTSubject
         'password',
     ];
 
+    public function getNameAttribute()
+    {
+        return 'Dear '.'hamed';
+    }
+
     /**
      * The attributes that should be hidden for serialization.
      *

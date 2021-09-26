@@ -1,31 +1,41 @@
 <?php
 
 namespace Tests;
-use App\Models\User;
-use Tests\BaseTestCase;
 
-abstract class TestCase extends BaseTestCase
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
+use Illuminate\Foundation\Testing\TestCase as BaseTestCase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Artisan;
+
+abstract class TestCase extends BaseTestCase 
 {
+    use RefreshDatabase;
+    use CreatesApplication;
+    use WithFaker;
+    use \App\Traits\FakeImage;
+    use \Tests\Helpers\GetFakeUser;
 
-    protected function setUpData() {
-        $this->user = $this->getFakeUser();
+    protected function clearTestingCache()
+    {
+        Artisan::call('cache:clear');
     }
 
-    public $basePathRoute;
-    public $user;
+    public  function setUp(): void {
+        
+        parent::setUp();
+        
+        $this->clearTestingCache();
 
-    private function assertUserIsNull() {
-        if (!$this->user || !($this->user instanceof User)) {
-            throw new \Exception(
-                'class must declare a ->user instance'
-            );
-        }
+        $this->setUpFaker();
+        
+        Storage::fake('local');
+
+        $this->setUpData();
     }
-
-    protected function baseAuthRequest() {
-        $this->assertUserIsNull();
-        return $this->actingAs($this->user, 'api')
-            ->withHeaders($this->defaultHeaders);
-    }
-
+    protected $defaultHeaders = [
+        'Accept' => 'application/json',
+    ];
+    protected function setUpData() {}
 }

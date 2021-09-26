@@ -24,7 +24,7 @@ class ProductFactory extends Factory
     {
         return [
             'user_id' => function () {
-                User::factory()->create()->id;
+                return User::factory()->create()->id;
             },
             'description' => $this->faker->text(),
             'title' => $this->faker->name(),

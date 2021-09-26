@@ -2,15 +2,17 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
+use Tests\FeatureTestCase;
 use App\Models\Product;
 use App\Models\ProductPicture;
 use App\Models\ProductPrice;
 use App\Models\Like;
 use Illuminate\Testing\Fluent\AssertableJson;
 
-class ProductControllerTest extends TestCase
+class ProductControllerTest extends FeatureTestCase
 {
+    use \Tests\Traits\MockHttpPostTrait;
+
     public $basePathRoute = '/api/product/';
     private $PicturesPathExtenstion = '/picture/';
     private $LikesPathExtenstion = '/like/'; 
@@ -18,6 +20,7 @@ class ProductControllerTest extends TestCase
 
     public function setUpData()
     {
+        $this->mockHttpPost();
         $this->user = $this->getFakeUser();
         $this->product = Product::factory()->for(
             $this->user, 'user'

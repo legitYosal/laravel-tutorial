@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
+use Tests\FeatureTestCase;
 use Illuminate\Support\Str;
 
-class InternalUserControllerTest extends TestCase
+class InternalUserControllerTest extends FeatureTestCase
 {
     public $basePathRoute = '/api/internal/private/change-user-notif-token/';
     public function test_notif()
