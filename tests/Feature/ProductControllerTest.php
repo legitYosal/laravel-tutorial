@@ -11,6 +11,8 @@ use Illuminate\Testing\Fluent\AssertableJson;
 
 class ProductControllerTest extends TestCase
 {
+    use \Tests\Traits\MockHttpPostTrait;
+
     public $basePathRoute = '/api/product/';
     private $PicturesPathExtenstion = '/picture/';
     private $LikesPathExtenstion = '/like/'; 
@@ -18,6 +20,7 @@ class ProductControllerTest extends TestCase
 
     public function setUpData()
     {
+        $this->mockHttpPost();
         $this->user = $this->getFakeUser();
         $this->product = Product::factory()->for(
             $this->user, 'user'

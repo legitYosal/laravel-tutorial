@@ -8,14 +8,19 @@ use App\Models\PostPicture;
 use App\Models\Product;
 use App\Models\ProductPicture;
 use App\Models\ProductPrice;
+use Tests\Feature\Traits\MockHttpPost as TraitsMockHttpPost;
 use Tests\TestCase;
-
+use Tests\Traits\MockHttpPostTrait;
 
 class IndexControllerTest extends TestCase
 {
+    use MockHttpPostTrait;
+
     public $basePathRoute = '/api/index/';
     public function setUpData()
     {
+        $this->mockHttpPost();
+
         $this->user = $this->getFakeUser();
 
         $this->posts = Post::factory()->has(
