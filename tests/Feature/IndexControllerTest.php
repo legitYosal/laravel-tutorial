@@ -9,10 +9,10 @@ use App\Models\Product;
 use App\Models\ProductPicture;
 use App\Models\ProductPrice;
 use Tests\Feature\Traits\MockHttpPost as TraitsMockHttpPost;
-use Tests\TestCase;
+use Tests\FeatureTestCase;
 use Tests\Traits\MockHttpPostTrait;
 
-class IndexControllerTest extends TestCase
+class IndexControllerTest extends FeatureTestCase
 {
     use MockHttpPostTrait;
 

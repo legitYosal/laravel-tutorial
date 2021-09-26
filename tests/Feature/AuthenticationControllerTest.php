@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
+use Tests\FeatureTestCase;
 use Illuminate\Support\Str;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
-class AuthenticationControllerTest extends TestCase
+class AuthenticationControllerTest extends FeatureTestCase
 {
     public $basePathRoute = '/api/auth/';
 

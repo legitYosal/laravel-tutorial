@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
+use Tests\FeatureTestCase;
 use App\Models\Product;
 use App\Models\ProductPicture;
 use App\Models\ProductPrice;
 use App\Models\Like;
 use Illuminate\Testing\Fluent\AssertableJson;
 
-class ProductControllerTest extends TestCase
+class ProductControllerTest extends FeatureTestCase
 {
     use \Tests\Traits\MockHttpPostTrait;
 

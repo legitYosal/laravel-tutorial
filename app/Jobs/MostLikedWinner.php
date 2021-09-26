@@ -26,6 +26,14 @@ class MostLikedWinner implements ShouldQueue
         //
     }
 
+    public function getTodayChampion(): Post
+    {
+        return Post::withCount('likes')
+        ->orderBy('likes_count', 'desc')
+        ->whereDate('created_at', today())
+        ->first();
+    }
+
     /**
      * Execute the job.
      *
@@ -34,9 +42,7 @@ class MostLikedWinner implements ShouldQueue
     public function handle()
     {
         //
-        $post = Post::withCount('likes')
-                ->orderBy('likes_count', 'desc')
-                ->first();
+        $post = $this->getTodayChampion();
         Http::post('https://gorest.co.in/public/v1/users', 
             $post->toArray());
     }

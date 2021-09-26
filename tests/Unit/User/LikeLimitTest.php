@@ -2,9 +2,9 @@
 
 namespace Tests\Unit\User;
 
-use Tests\BaseTestCase;
+use Tests\TestCase;
 
-class LikeLimitTest extends BaseTestCase
+class LikeLimitTest extends TestCase
 {
     public function test_like_limiation()
     {

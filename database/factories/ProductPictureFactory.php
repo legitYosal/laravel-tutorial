@@ -28,7 +28,7 @@ class ProductPictureFactory extends Factory
             'image_name'=>$image_file->name,
             'image_path'=> 'storage/'.$image_file->name,
             'product_id'=> function () {
-                Product::factory()->create()->id;
+                return Product::factory()->create()->id;
             },
         ];
     }
